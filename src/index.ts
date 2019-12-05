@@ -15,6 +15,8 @@ export default class GameScene extends Phaser.Scene {
   preload() {
     this.load.image('background', ASSETS.BACKGROUND);
     this.load.image('player', ASSETS.PLAYER);
+    this.load.image('enemy', ASSETS.DRAGON);
+
   }
 
   create() {
@@ -22,6 +24,19 @@ export default class GameScene extends Phaser.Scene {
     const gameWidth = parseInt(this.sys.game.config.width.toString());
     const gameHeight = parseInt(this.sys.game.config.height.toString());
     background.setPosition(gameWidth / 2, gameHeight / 2);
+
+    const player = this.add.sprite(70, 180, 'player');
+    player.setScale(0.5, 2);
+
+    const enemyOne = this.add.sprite(250, 180, 'enemy');
+    enemyOne.scaleX = 2;
+    enemyOne.scaleY = 2;
+    enemyOne.flipX = true;
+    enemyOne.flipY = true;
+
+    const enemyTwo = this.add.sprite(450, 180, 'enemy');
+    enemyTwo.displayWidth = 300;
+
   }
 
   update() {}
