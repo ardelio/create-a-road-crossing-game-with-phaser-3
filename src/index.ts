@@ -16,6 +16,7 @@ export default class GameScene extends Phaser.Scene {
   private enemyMaxSpeed: number;
   private enemyMinY: number;
   private enemyMaxY: number;
+  private isTerminating: boolean;
 
   constructor() {
     super('Game');
@@ -27,6 +28,7 @@ export default class GameScene extends Phaser.Scene {
     this.enemyMaxSpeed = 4.5;
     this.enemyMinY = 80;
     this.enemyMaxY = 280;
+    this.isTerminating = false;
   }
 
   preload() {
@@ -80,8 +82,7 @@ export default class GameScene extends Phaser.Scene {
     const treasureRectangle = this.treasure.getBounds();
 
     if (Phaser.Geom.Intersects.RectangleToRectangle(playerRectangle, treasureRectangle)) {
-      console.log('Reached the treasure!')
-      this.scene.restart();
+      this.gameOver();
     }
 
     this.enemies.getChildren().forEach((enemy : Phaser.GameObjects.Sprite) => {
@@ -97,10 +98,26 @@ export default class GameScene extends Phaser.Scene {
       const enemyRectangle = enemy.getBounds();
 
       if (Phaser.Geom.Intersects.RectangleToRectangle(playerRectangle, enemyRectangle)) {
-        console.log('Game over!');
-
-        this.scene.restart();
+        this.gameOver();
       }
+    });
+  }
+
+  private gameOver() {
+    if (this.isTerminating) {
+      return;
+    }
+
+    console.log('Game over!');
+    this.isTerminating = true;
+    this.cameras.main.shake(500);
+    this.playerSpeed = 0;
+    this.cameras.main.on(Phaser.Cameras.Scene2D.Events.SHAKE_COMPLETE, () => {
+      this.cameras.main.fade(500);
+    });
+
+    this.cameras.main.on(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      return this.scene.restart();
     });
   }
 }
