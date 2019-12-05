@@ -8,6 +8,9 @@ const ASSETS = {
 };
 
 export default class GameScene extends Phaser.Scene {
+  private player: Phaser.GameObjects.Sprite;
+  private enemy: Phaser.GameObjects.Sprite;
+
   constructor() {
     super('Game');
   }
@@ -25,21 +28,18 @@ export default class GameScene extends Phaser.Scene {
     const gameHeight = parseInt(this.sys.game.config.height.toString());
     background.setPosition(gameWidth / 2, gameHeight / 2);
 
-    const player = this.add.sprite(70, 180, 'player');
-    player.setScale(0.5, 2);
+    this.player = this.add.sprite(70, 180, 'player');
+    this.player.setScale(0.5);
 
-    const enemyOne = this.add.sprite(250, 180, 'enemy');
-    enemyOne.scaleX = 2;
-    enemyOne.scaleY = 2;
-    enemyOne.flipX = true;
-    enemyOne.flipY = true;
-
-    const enemyTwo = this.add.sprite(450, 180, 'enemy');
-    enemyTwo.displayWidth = 300;
-
+    this.enemy = this.add.sprite(250, 180, 'enemy');
   }
 
-  update() {}
+  update() {
+    const { scale } = this.enemy;
+    if (scale < 2) {
+      this.enemy.setScale(scale + 0.01);
+    }
+  }
 }
 
 const config : Phaser.Types.Core.GameConfig = {
