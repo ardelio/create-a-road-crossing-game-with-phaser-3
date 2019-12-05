@@ -9,16 +9,21 @@ const ASSETS = {
 
 export default class GameScene extends Phaser.Scene {
   private player: Phaser.GameObjects.Sprite;
-  private enemy: Phaser.GameObjects.Sprite;
+  private treasure: Phaser.GameObjects.Sprite;
+  private playerSpeed: number;
 
   constructor() {
     super('Game');
   }
 
+  init() {
+    this.playerSpeed = 3;
+  }
+
   preload() {
     this.load.image('background', ASSETS.BACKGROUND);
     this.load.image('player', ASSETS.PLAYER);
-    this.load.image('enemy', ASSETS.DRAGON);
+    this.load.image('treasure', ASSETS.TREASURE);
 
   }
 
@@ -28,16 +33,24 @@ export default class GameScene extends Phaser.Scene {
     const gameHeight = parseInt(this.sys.game.config.height.toString());
     background.setPosition(gameWidth / 2, gameHeight / 2);
 
-    this.player = this.add.sprite(70, 180, 'player');
+    this.player = this.add.sprite(70, gameHeight / 2, 'player');
     this.player.setScale(0.5);
 
-    this.enemy = this.add.sprite(250, 180, 'enemy');
+    this.treasure = this.add.sprite(gameWidth - 80, gameHeight / 2, 'treasure');
+    this.treasure.setScale(0.6);
   }
 
   update() {
-    const { scale } = this.enemy;
-    if (scale < 2) {
-      this.enemy.setScale(scale + 0.01);
+    if (this.input.activePointer.isDown) {
+      this.player.x += this.playerSpeed;
+    }
+
+    const playerBounds = this.player.getBounds();
+    const treasureBounds = this.treasure.getBounds();
+
+    if (Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, treasureBounds)) {
+      console.log('Reached the treasure!')
+      this.scene.restart();
     }
   }
 }
