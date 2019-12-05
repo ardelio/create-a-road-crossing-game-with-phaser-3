@@ -9,7 +9,7 @@ const ASSETS = {
 
 export default class GameScene extends Phaser.Scene {
   private player: Phaser.GameObjects.Sprite;
-  private enemy: Phaser.GameObjects.Sprite;
+  private enemies: Phaser.GameObjects.Group;
   private treasure: Phaser.GameObjects.Sprite;
   private playerSpeed: number;
   private enemyMinSpeed: number;
@@ -43,18 +43,32 @@ export default class GameScene extends Phaser.Scene {
     const gameHeight = parseInt(this.sys.game.config.height.toString());
     background.setPosition(gameWidth / 2, gameHeight / 2);
 
-    this.player = this.add.sprite(70, gameHeight / 2, 'player');
+    this.player = this.add.sprite(30, gameHeight / 2, 'player');
     this.player.setScale(0.5);
 
     this.treasure = this.add.sprite(gameWidth - 80, gameHeight / 2, 'treasure');
     this.treasure.setScale(0.6);
 
-    this.enemy = this.add.sprite(120, gameHeight / 2, 'dragon');
-    this.enemy.flipX = true;
-    this.enemy.setScale(0.6);
-    const direction = Math.random() < 0.5 ? 1 : -1;
-    const speed = this.enemyMinSpeed + Math.random() * (this.enemyMaxSpeed - this.enemyMinSpeed);
-    (this.enemy as any).speed = direction * speed;
+    const groupCreateConfig : Phaser.Types.GameObjects.Group.GroupCreateConfig = {
+      key: 'dragon',
+      repeat: 5,
+      setXY: {
+        x: 90,
+        y: 100,
+        stepX: 80,
+        stepY: 20,
+      }
+    };
+
+    this.enemies = this.add.group(groupCreateConfig);
+
+    Phaser.Actions.ScaleXY(this.enemies.getChildren(), -0.4, -0.4);
+    this.enemies.getChildren().forEach((enemy : Phaser.GameObjects.Sprite) => {
+      enemy.flipX = true;
+      const direction = Math.random() < 0.5 ? 1 : -1;
+      const speed = this.enemyMinSpeed + Math.random() * (this.enemyMaxSpeed - this.enemyMinSpeed);
+      (enemy as any).velocity = direction * speed;
+    });
   }
 
   update() {
@@ -62,22 +76,32 @@ export default class GameScene extends Phaser.Scene {
       this.player.x += this.playerSpeed;
     }
 
-    const playerBounds = this.player.getBounds();
-    const treasureBounds = this.treasure.getBounds();
+    const playerRectangle = this.player.getBounds();
+    const treasureRectangle = this.treasure.getBounds();
 
-    if (Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, treasureBounds)) {
+    if (Phaser.Geom.Intersects.RectangleToRectangle(playerRectangle, treasureRectangle)) {
       console.log('Reached the treasure!')
       this.scene.restart();
     }
 
-    this.enemy.y += (this.enemy as any).speed;
+    this.enemies.getChildren().forEach((enemy : Phaser.GameObjects.Sprite) => {
+      enemy.y += (enemy as any).velocity;
 
-    const conditionUp = (this.enemy as any).speed < 0 && this.enemy.y <= this.enemyMinY;
-    const conditionDown = (this.enemy as any).speed > 0 && this.enemy.y >= this.enemyMaxY
+      const conditionUp = (enemy as any).velocity < 0 && enemy.y <= this.enemyMinY;
+      const conditionDown = (enemy as any).velocity > 0 && enemy.y >= this.enemyMaxY
 
-    if (conditionDown || conditionUp) {
-      (this.enemy as any).speed *= -1;
-    }
+      if (conditionDown || conditionUp) {
+        (enemy as any).velocity *= -1;
+      }
+
+      const enemyRectangle = enemy.getBounds();
+
+      if (Phaser.Geom.Intersects.RectangleToRectangle(playerRectangle, enemyRectangle)) {
+        console.log('Game over!');
+
+        this.scene.restart();
+      }
+    });
   }
 }
 
